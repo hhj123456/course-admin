@@ -16,7 +16,7 @@ import VueQuillEditor from 'vue-quill-editor'
 import 'quill/dist/quill.core.css'
 import 'quill/dist/quill.snow.css'
 import 'quill/dist/quill.bubble.css'
-Mock.bootstrap();//开启假数据
+// Mock.bootstrap();//开启假数据
 import 'font-awesome/css/font-awesome.min.css'
 
 Vue.use(VueQuillEditor);

@@ -129,8 +129,8 @@
 			var user = sessionStorage.getItem('user');
 			if (user) {
 				user = JSON.parse(user);
-				this.sysUserName = user.name || '';
-				this.sysUserAvatar = user.avatar || '';
+				this.sysUserName = "管理员" || '';
+				this.sysUserAvatar = 'https://raw.githubusercontent.com/taylorchen709/markdown-images/master/vueadmin/user.png' || '';
 			}
 
 		}
