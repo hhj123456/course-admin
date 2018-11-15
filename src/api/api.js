@@ -176,10 +176,10 @@ export const getExperimentContent = params => {
     ); 
 };
 
-//新增实验中的实验总结
-export const AddExperimentConclusion = params => { 
+//删除实验报告的中的内容
+export const deleteExperimentContent = params => { 
 	return axios.post(
-		`${base}/Exconclusion/select`,
+		`${base}/Addexreport/delete`,
 		Qs.stringify(params),
 		{
 	        headers: {
@@ -189,6 +189,119 @@ export const AddExperimentConclusion = params => {
     ); 
 };
 
+//新增实验中的实验总结
+export const AddExperimentConclusion = params => { 
+	return axios.post(
+		`${base}/Exconclusion/index`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+
+//获取实验与总结中的主观题
+export const getExperimentConclusion = params => { 
+	return axios.post(
+		`${base}/Exconclusion/search`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+//删除实验与总结中的主观题
+export const deleteExperimentConclusion = params => { 
+	return axios.post(
+		`${base}/Exconclusion/delete`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+//更新实验与总结中的主观题
+export const updateExperimentConclusion = params => { 
+	return axios.post(
+		`${base}/Exconclusion/update`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+
+//添加实验总结
+export const AddExpConclusion = params => { 
+	return axios.post(
+		`${base}/Exconclusion/addConclusion`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+
+//添加选择题
+export const AddExamSelect = params => { 
+	return axios.post(
+		`${base}/TestSelect/index`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+//显示所有选择题
+export const getAllExamSelect = params => { 
+	return axios.post(
+		`${base}/TestSelect/search`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+
+//更新选择题
+export const updateExamSelect = params => { 
+	return axios.post(
+		`${base}/TestSelect/update`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+
+//删除选择题
+export const deleteExamSelect = params => { 
+	return axios.post(
+		`${base}/TestSelect/delete`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
 
 
 //获取课程名
