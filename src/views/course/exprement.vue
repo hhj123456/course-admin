@@ -35,15 +35,20 @@
 		        show-overflow-tooltip
 		        label="实验是否添加">
 		       	<template slot-scope="scope">
-		       		{{scope.row.flag === 1 ? '已添加':'未添加'}}
+		       		<el-tag
+			          :type="scope.row.flag == 1 ? 'primary' : 'success'"
+			          disable-transitions>{{scope.row.flag == 1 ? '已添加':'未添加'}}</el-tag>
 		       	</template>
 		      </el-table-column>
 		      <el-table-column
 			      label="操作"
-			      width="100">
+			      width="250">
 			      <template slot-scope="scope">
-			        <el-button @click="handleClick(scope.row)" type="text" size="small">编辑</el-button>
-			        <el-button type="text" size="small">删除</el-button>
+			        <el-button @click="handleClick(scope.row)" size="small">编辑</el-button>
+			        <el-button :type="scope.row.isclass == 0 ? 'primary' : 'success'" size="small" @click="start(scope.row)">
+			        	{{scope.row.isclass == 0 ? '开课' : '实验中'}}
+			        </el-button>
+			        <el-button type="danger" size="small" @click="deleteExperiment(scope.row)">删除</el-button>
 			      </template>
 			  </el-table-column>
 	    	</el-table>
@@ -53,7 +58,7 @@
 				</el-pagination>
 			</el-col>
 		</div>
-		<div v-show="editVisable" class="detial">
+		<div v-show="editVisable" class="detial" v-loading="paneloading">
 			<el-tabs type="border-card" v-model="activeName" @tab-click="handleTabClick">
 				<el-button type="primary" class="el-icon-back" @click="goback">返回</el-button>
 			  <el-tab-pane name="first">
@@ -554,10 +559,35 @@
 				</el-form-item>
 			</el-form>
 		</el-dialog>
+		<!-- 开始实验 -->
+		<el-dialog title="开始实验" :visible.sync="dialogStartVisible">
+		  <el-form :model="startForm" style="width: 75%;margin: 0 auto;">
+		    <el-form-item label="单选题个数" label-width="200">
+		      <el-input-number v-model="startForm.single" :min="0" :step="1" label="描述文字"></el-input-number>
+		    </el-form-item>
+		    <el-form-item label="单选题分数" label-width="200">
+		     <el-input-number v-model="startForm.singleCount" :min="2" :step="1" label="描述文字"></el-input-number>
+		    </el-form-item>
+		    <el-form-item label="多选题个数" label-width="200">
+		      <el-input-number v-model="startForm.multi" :min="0" :step="1" label="描述文字"></el-input-number>
+		    </el-form-item>
+		     <el-form-item label="多选题分数" label-width="200">
+		     	<el-input-number v-model="startForm.multiCount" :min="2" :step="1" label="描述文字"></el-input-number>
+		    </el-form-item>
+		  </el-form>
+		  <div style="margin-left: 12%">
+			  <p>总分：{{totalscore}}</p>
+			  <p>及格分数：{{passscore}}</p>
+		  </div>
+		  <div slot="footer" class="dialog-footer">
+		    <el-button @click="dialogStartVisible = false">取 消</el-button>
+		    <el-button type="primary" @click="startSave" :loading="startSaveLoading">确 定</el-button>
+		  </div>
+		</el-dialog>
 	</div>	
 </template>
 <script>
-	import {getExperiment,UpdateExperiment,AddExperimentConclusion,AddExperimentContent,getExperimentContent,AddExperimentTitle,deleteExperimentContent,getExperimentConclusion,deleteExperimentConclusion,updateExperimentConclusion,AddExpConclusion,AddExamSelect,getAllExamSelect,updateExamSelect,deleteExamSelect} from '../../api/api';
+	import {getExperiment,UpdateExperiment,AddExperimentConclusion,AddExperimentContent,getExperimentContent,AddExperimentTitle,deleteExperimentContent,getExperimentConclusion,deleteExperimentConclusion,updateExperimentConclusion,AddExpConclusion,AddExamSelect,getAllExamSelect,updateExamSelect,deleteExamSelect,removeExperiment,startExamSelect} from '../../api/api';
 	export default{
 		name:"exprement",
 		data(){
@@ -572,6 +602,7 @@
 				tableloading:false,//加载
 				testLoading:false,//加载
 				testManageLoading:false,//加载
+				paneloading:false,//加载
 				exprement:{
 					id:'',//实验编号
 					projectname:'',//课程名称
@@ -595,6 +626,8 @@
 				},
 				tableVisable:true,//表格显示
 				editVisable:false,//编辑显示
+				dialogStartVisible:false,//开始实验显示
+				startSaveLoading:false,//保存
 				defaultProps:{
 					children: 'children',
           			label: 'retitle'
@@ -672,6 +705,12 @@
 					type:""
 				},//选择题编辑
 				num:["A","B","C","D","E","F","G","H","I","J"],//字母
+				startForm:{
+					single:1,
+					singleCount:30,
+					multi:2,
+					multiCount:35,
+				},//实验开始
 
 			}
 		},
@@ -688,6 +727,36 @@
 					this.total = res.data.total;
 					this.tableData = res.data.data;
 				})
+			},
+			deleteExperiment(row){
+				let param = {
+					id : row.id
+				}
+				this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+		          confirmButtonText: '确定',
+		          cancelButtonText: '取消',
+		          type: 'warning'
+		        }).then(() => {
+		          	this.paneloading = true;
+					removeExperiment(param).then(res => {
+						this.paneloading = false;
+						if(res.data.code === 200){
+		            		this.$message({
+						        message: res.data.msg,
+						        type:'success'
+					        });
+					        this.getExprements();
+		            	}else{
+		            		this.$message.error(res.data.msg);
+		            	}
+					})
+		        }).catch(() => {
+		          this.$message({
+		            type: 'info',
+		            message: '已取消删除'
+		          });          
+		        });
+
 			},
 			handleClick(row){
 				this.tableVisable = false;
@@ -885,7 +954,9 @@
 		    	this.$refs[formName].validate((valid) => {
 			        if (valid) {
 			        	this.exam.exid = this.exprement.id;
+			        	this.paneloading = true;
 			          	AddExamSelect(this.exam).then(res =>{
+			          		this.paneloading = false;
 			          		if(res.data.code === 200){
 				    			this.$message({
 						          message: res.data.msg,
@@ -939,6 +1010,7 @@
 		    goback(){
 		    	this.tableVisable = true;
 		    	this.editVisable = false;
+		    	this.getExprements();
 		    },
 		    //保存内容
 		    saveContent(){
@@ -947,7 +1019,9 @@
 		    		retitle:this.title,
 		    		recont:this.content[this.titleid]
 		    	}
+		    	this.paneloading = true;
 		    	AddExperimentContent(param).then(res => {
+		    		this.paneloading = false;
 		    		if(res.data.code === 200){
 		    			this.$message({
 				          message: res.data.msg,
@@ -964,7 +1038,9 @@
 		    	this.$refs[formName].validate((valid) => {
 		          if (valid) {
 		            this.Subjective.exid = this.exprement.id;
+		            this.paneloading = true;
 		    		AddExperimentConclusion(this.Subjective).then(res =>{
+		    			this.paneloading = false;
 			    		if(res.data.code === 200){
 			    			this.$message({
 					          message: res.data.msg,
@@ -1163,12 +1239,58 @@
 		            message: '已取消删除'
 		          });          
 		        });
+		    },
+		    //打开页面
+		    start(row){
+		    	if(row.isclass == 1){
+		    		this.startForm.id = row.id;
+		    		this.startForm.single = row.single;
+		    		this.startForm.singleCount =row.singleCount;
+		    		this.startForm.multi=row.multi;
+		    		this.startForm.multiCount = row.multiCount;
+		    		this.dialogStartVisible = true;
+		    	}else if(row.isclass == 0){
+		    		if(row.flag == 0){
+		    			this.$message({
+				          message: '请先完善实验课程',
+				          type: 'warning'
+				        });
+		    		}else{
+		    			this.dialogStartVisible = true;
+		    			this.startForm.id = row.id;
+		    		}
+		    	}
+		    },
+		    //保存开始实验
+		    startSave(){
+				this.startSaveLoading = true;
+		    	startExamSelect(this.startForm).then(res => {
+		    		this.startSaveLoading = false;
+		    		if(res.data.code === 200){
+		    			this.$message({
+				          message: res.data.msg,
+				          type: 'success'
+				        });
+				        this.getExprements();
+				        this.dialogStartVisible = false;
+		    		}else{
+		    			this.$message.error(res.data.msg);
+		    		}
+		    	});
 		    }
 
 		},
+		computed:{
+			totalscore:function(){
+				return this.startForm.single*this.startForm.singleCount+this.startForm.multi*this.startForm.multiCount;
+			},
+			passscore:function(){
+				return (this.startForm.single*this.startForm.singleCount+this.startForm.multi*this.startForm.multiCount)*0.6;
+			}
+		},
 		mounted(){
 	    	this.getExprements();
-	    }
+	    },
 	}
 </script>
 <style scoped>

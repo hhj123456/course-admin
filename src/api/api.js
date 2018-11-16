@@ -303,6 +303,20 @@ export const deleteExamSelect = params => {
     ); 
 };
 
+//开始实验
+export const startExamSelect = params => { 
+	return axios.post(
+		`${base}/Addexperiment/start`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+
+
 
 //获取课程名
 export const getCourseName = params => {return axios.get(`${base}/course/project`, { params: params })};
