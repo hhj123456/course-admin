@@ -16,6 +16,7 @@
 					:props="defaultProps"
 					v-loading="getCourseNameLoading"
 					ref="tree"
+					:default-expand-all="true"
 					:filter-node-method="filterNode"
 					:expand-on-click-node="false">
 					<span class="custom-tree-node" slot-scope="{ node, data }">

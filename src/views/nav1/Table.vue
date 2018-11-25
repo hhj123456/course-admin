@@ -21,15 +21,13 @@
 			</el-table-column>
 			<el-table-column type="index" width="60">
 			</el-table-column>
-			<el-table-column prop="name" label="姓名" width="120" sortable>
+			<el-table-column prop="college" label="学院"  sortable>
 			</el-table-column>
-			<el-table-column prop="sex" label="性别" width="100" :formatter="formatSex" sortable>
+			<el-table-column prop="num" label="学号"   sortable>
 			</el-table-column>
-			<el-table-column prop="age" label="年龄" width="100" sortable>
+			<el-table-column prop="name" label="姓名"  sortable>
 			</el-table-column>
-			<el-table-column prop="birth" label="生日" width="120" sortable>
-			</el-table-column>
-			<el-table-column prop="addr" label="地址" min-width="180" sortable>
+			<el-table-column prop="class" label="所属班级"  sortable>
 			</el-table-column>
 			<el-table-column label="操作" width="150">
 				 <template slot-scope="scope">
@@ -174,8 +172,8 @@
 				this.listLoading = true;
 				//NProgress.start();
 				getUserListPage(para).then((res) => {
-					this.total = res.data.total;
-					this.users = res.data.users;
+					this.total = res.data.data.length;
+					this.users = res.data.data;
 					this.listLoading = false;
 					//NProgress.done();
 				});
