@@ -329,7 +329,99 @@ export const getUserListPage = params => {
       	}
     ); 
 };
+//学生信息导入地址
+export const ImportStudentInfo = params => { return axios.post(`${base}/Import/index`, params)};
 
+//添加学生信息
+export const addUser = params => { 
+	return axios.post(
+		`${base}/Import/adduser`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+
+//修改学生信息
+export const editUser = params => { 
+	return axios.post(
+		`${base}/Import/update`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+
+//删除学生信息
+export const removeUser = params => { 
+	return axios.post(
+		`${base}/Import/remove`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+
+//批量删除学生信息
+export const batchRemoveUser = params => { 
+	return axios.post(
+		`${base}/Import/batchremove`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+
+//获取目前学生的班级信息
+export const getClassInfo = params => { 
+	return axios.post(
+		`${base}/Import/getclass`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+
+//获取目前实验数据
+export const getExperimentnameInfo = params => { 
+	return axios.post(
+		`${base}/expSelect/index`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+
+//获取目前实验以及班级的签到情况
+export const getStudentAllInfo = params => { 
+	return axios.post(
+		`${base}/Allinfo/index`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
 
 
 // //获取课程名

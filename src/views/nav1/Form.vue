@@ -3,12 +3,20 @@
 		<!--工具条-->
 		<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
 			<el-form :inline="true" :model="filters">
-				<el-select v-model="filters.name" filterable placeholder="请选择实验">
+				<el-select v-model="filters.classname" filterable placeholder="请选择班级">
 				    <el-option
-				      v-for="item in options"
+				      v-for="item in classoption"
 				      :key="item.value"
 				      :label="item.label"
 				      :value="item.value">
+				    </el-option>
+				</el-select>
+				<el-select v-model="filters.exid" filterable placeholder="请选择实验">
+				    <el-option
+				      v-for="item in options"
+				      :key="item.id"
+				      :label="item.ename"
+				      :value="item.id">
 				    </el-option>
 				</el-select>
 				<el-form-item>
@@ -19,24 +27,19 @@
 
 		<!--列表-->
 		<el-table :data="users" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;">
-			<el-table-column type="selection" width="55">
-			</el-table-column>
 			<el-table-column type="index" width="60">
 			</el-table-column>
-			<el-table-column prop="college" label="学院"  sortable>
+			<el-table-column prop="num" label="学号" width="120"  sortable>
 			</el-table-column>
-			<el-table-column prop="num" label="学号"   sortable>
+			<el-table-column prop="name" label="姓名" width="120">
 			</el-table-column>
-			<el-table-column prop="name" label="姓名"  sortable>
+			<el-table-column prop="score" label="测试得分" width="120"  sortable>
 			</el-table-column>
-			<el-table-column prop="class" label="所属班级"  sortable>
+			<el-table-column prop="stime" label="签到时间" width="200"  sortable>
 			</el-table-column>
-			<el-table-column label="操作" width="150">
-				 <template slot-scope="scope">
-					<el-tag
-			          :type="scope.row.id <= 5 ? 'danger' : 'success'"
-			          disable-transitions>{{scope.row.id <= 5 ? '尚未签到' : '已经签到'}}</el-tag>
-				</template>
+			<el-table-column prop="etime" label="签退时间"  width="200" sortable>
+			</el-table-column>
+			<el-table-column prop="duration" label="实验时长" width="200"  sortable>
 			</el-table-column>
 			<el-table-column label="操作" width="150">
 				 <template slot-scope="scope">
@@ -48,9 +51,9 @@
 
 		<!--工具条-->
 		<el-col :span="24" class="toolbar">
-			<el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>
-			<el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="20" :total="total" style="float:right;">
-			</el-pagination>
+			<el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">全部数据</el-button>
+			<!-- <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="20" :total="total" style="float:right;">
+			</el-pagination> -->
 		</el-col>
 
 		<!--编辑界面-->
@@ -114,13 +117,14 @@
 <script>
 	import util from '../../common/js/util'
 	//import NProgress from 'nprogress'
-	import { getUserListPage, removeUser, batchRemoveUser, editUser, addUser } from '../../api/api';
+	import { getUserListPage, removeUser, batchRemoveUser, editUser, addUser,getClassInfo,getExperimentnameInfo,getStudentAllInfo} from '../../api/api';
 
 	export default {
 		data() {
 			return {
 				filters: {
-					name: ''
+					classname: '',
+					exid:'',
 				},
 				users: [],
 				total: 0,
@@ -160,23 +164,9 @@
 					birth: '',
 					addr: ''
 				},
-				 options: [{
-			          value: '选项1',
-			          label: '数据库设计方法'
-			        }, {
-			          value: '选项2',
-			          label: '气人表决器电路设计'
-			        }, {
-			          value: '选项3',
-			          label: 'SQL数据的定义'
-			        }, {
-			          value: '选项4',
-			          label: 'ODBC编程'
-			        }, {
-			          value: '选项5',
-			          label: '嵌入式SQL'
-			        }],
-
+				options: [],//实验信息
+			    classoption:[
+			    ],//班级信息
 			}
 		},
 		methods: {
@@ -190,15 +180,11 @@
 			},
 			//获取用户列表
 			getUsers() {
-				let para = {
-					page: this.page,
-					name: this.filters.name
-				};
 				this.listLoading = true;
 				//NProgress.start();
-				getUserListPage(para).then((res) => {
-					this.total = res.data.data.length;
+				getStudentAllInfo(this.filters).then((res) => {
 					this.users = res.data.data;
+					console.log(this.users);
 					this.listLoading = false;
 					//NProgress.done();
 				});
@@ -310,12 +296,44 @@
 						this.getUsers();
 					});
 				}).catch(() => {
-
+					this.$message.error("网络故障");
 				});
-			}
+			},
+			getClass(){
+				getClassInfo().then(res => {
+					let classInfo = Object.assign([],res.data.data);
+					for (var i = 0; i < classInfo.length; i++) {
+						this.classoption.push({
+							value : classInfo[i].class,
+							label:classInfo[i].class
+						})
+					}
+				}).catch(ret => {
+					this.$message.error("网络故障");
+				})
+			},
+			//getExperimentnameInfo获取实验信息
+			getExperimentname(){
+				getExperimentnameInfo().then(res => {
+					// console.log(res.data.data);
+					this.options = res.data.data
+				}).catch( ret => {
+					this.$message.error("网络故障");
+				})
+			},
+			zeroPadding(num,digit){
+				var zero = '';
+			    for(var i = 0; i < digit; i++) {
+			        zero += '0';
+			    }
+			    return (zero + num).slice(-digit);
+			},
+
 		},
 		mounted() {
-			this.getUsers();
+			// this.getUsers();
+			this.getClass();
+			this.getExperimentname();
 		}
 	}
 

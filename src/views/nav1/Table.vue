@@ -1,10 +1,18 @@
 <template>
-	<section>
+	<section  v-loading="contentLoading" style="min-width: 758px">
 		<!--工具条-->
 		<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
 			<el-form :inline="true" :model="filters">
+				<el-select v-model="filters.class" clearable placeholder="请选择班级" @change="selectClass">
+				    <el-option
+				      v-for="item in classfilter"
+				      :key="item.value"
+				      :label="item.text"
+				      :value="item.value">
+				    </el-option>
+				</el-select>
 				<el-form-item>
-					<el-input v-model="filters.name" placeholder="姓名"></el-input>
+					<el-input v-model.trim="filters.num" placeholder="学号"></el-input>
 				</el-form-item>
 				<el-form-item>
 					<el-button type="primary" v-on:click="getUsers">查询</el-button>
@@ -12,6 +20,25 @@
 				<el-form-item>
 					<el-button type="primary" @click="handleAdd">新增</el-button>
 				</el-form-item>
+				<div style="float: right;">
+				<el-form-item>
+					<el-tooltip class="item" effect="dark" content="学生信息导入" placement="bottom">
+						<el-upload
+						  class="upload-demo"
+						  action="posturl"
+						  :before-upload="beforeUpload"
+						  accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+						  multiple>
+							<el-button type="success"  icon="el-icon-upload2" circle></el-button>
+						</el-upload>
+					</el-tooltip>
+				</el-form-item>
+				<el-form-item>
+					<el-tooltip class="item" effect="dark" content="学生信息导出" placement="bottom">
+					<el-button type="warning" icon="el-icon-download" circle></el-button>
+					</el-tooltip>	
+				</el-form-item>
+				</div>
 			</el-form>
 		</el-col>
 
@@ -21,13 +48,11 @@
 			</el-table-column>
 			<el-table-column type="index" width="60">
 			</el-table-column>
-			<el-table-column prop="college" label="学院"  sortable>
+			<el-table-column prop="num" label="学号"   >
 			</el-table-column>
-			<el-table-column prop="num" label="学号"   sortable>
+			<el-table-column prop="name" label="姓名"  >
 			</el-table-column>
-			<el-table-column prop="name" label="姓名"  sortable>
-			</el-table-column>
-			<el-table-column prop="class" label="所属班级"  sortable>
+			<el-table-column prop="class" label="所属班级"  >
 			</el-table-column>
 			<el-table-column label="操作" width="150">
 				 <template slot-scope="scope">
@@ -40,30 +65,21 @@
 		<!--工具条-->
 		<el-col :span="24" class="toolbar">
 			<el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>
-			<el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="20" :total="total" style="float:right;">
+			<el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="pageSize" :total="total" style="float:right;">
 			</el-pagination>
 		</el-col>
 
 		<!--编辑界面-->
-		<el-dialog title="编辑" v-model="editFormVisible" :close-on-click-modal="false">
+		<el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false">
 			<el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
 				<el-form-item label="姓名" prop="name">
 					<el-input v-model="editForm.name" auto-complete="off"></el-input>
 				</el-form-item>
-				<el-form-item label="性别">
-					<el-radio-group v-model="editForm.sex">
-						<el-radio class="radio" :label="1">男</el-radio>
-						<el-radio class="radio" :label="0">女</el-radio>
-					</el-radio-group>
+				<el-form-item label="学号" prop="num">
+					<el-input v-model="editForm.num" auto-complete="off" disabled></el-input>
 				</el-form-item>
-				<el-form-item label="年龄">
-					<el-input-number v-model="editForm.age" :min="0" :max="200"></el-input-number>
-				</el-form-item>
-				<el-form-item label="生日">
-					<el-date-picker type="date" placeholder="选择日期" v-model="editForm.birth"></el-date-picker>
-				</el-form-item>
-				<el-form-item label="地址">
-					<el-input type="textarea" v-model="editForm.addr"></el-input>
+				<el-form-item label="班级" prop="class">
+					<el-input v-model.trim="editForm.class" auto-complete="off"></el-input>
 				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
@@ -73,25 +89,16 @@
 		</el-dialog>
 
 		<!--新增界面-->
-		<el-dialog title="新增" v-model="addFormVisible" :close-on-click-modal="false">
+		<el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false">
 			<el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
 				<el-form-item label="姓名" prop="name">
 					<el-input v-model="addForm.name" auto-complete="off"></el-input>
 				</el-form-item>
-				<el-form-item label="性别">
-					<el-radio-group v-model="addForm.sex">
-						<el-radio class="radio" :label="1">男</el-radio>
-						<el-radio class="radio" :label="0">女</el-radio>
-					</el-radio-group>
+				<el-form-item label="学号" prop="num">
+					<el-input v-model="addForm.num" auto-complete="off"></el-input>
 				</el-form-item>
-				<el-form-item label="年龄">
-					<el-input-number v-model="addForm.age" :min="0" :max="200"></el-input-number>
-				</el-form-item>
-				<el-form-item label="生日">
-					<el-date-picker type="date" placeholder="选择日期" v-model="addForm.birth"></el-date-picker>
-				</el-form-item>
-				<el-form-item label="地址">
-					<el-input type="textarea" v-model="addForm.addr"></el-input>
+				<el-form-item label="班级" prop="class">
+					<el-input v-model.trim="addForm.class" auto-complete="off"></el-input>
 				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
@@ -105,17 +112,20 @@
 <script>
 	import util from '../../common/js/util'
 	//import NProgress from 'nprogress'
-	import { getUserListPage, removeUser, batchRemoveUser, editUser, addUser } from '../../api/api';
+	import { getUserListPage, removeUser, batchRemoveUser, editUser, addUser ,ImportStudentInfo,getClassInfo} from '../../api/api';
 
 	export default {
 		data() {
 			return {
+				contentLoading:false,
 				filters: {
-					name: ''
+					num: '',//学号
+					class:'',//班级
 				},
 				users: [],
-				total: 0,
-				page: 1,
+				total: 0,//总计
+				page: 1,//当前页数
+				pageSize:15,//每页数据
 				listLoading: false,
 				sels: [],//列表选中列
 
@@ -124,16 +134,19 @@
 				editFormRules: {
 					name: [
 						{ required: true, message: '请输入姓名', trigger: 'blur' }
-					]
+					],
+					num : [
+						{ required: true, message: '请输入学号', trigger: 'blur' }
+					],
+					class:[
+						{ required: true, message: '请输入班级', trigger: 'blur' }
+					],
 				},
 				//编辑界面数据
 				editForm: {
-					id: 0,
 					name: '',
-					sex: -1,
-					age: 0,
-					birth: '',
-					addr: ''
+					num: '',
+					class:'',
 				},
 
 				addFormVisible: false,//新增界面是否显示
@@ -141,16 +154,22 @@
 				addFormRules: {
 					name: [
 						{ required: true, message: '请输入姓名', trigger: 'blur' }
-					]
+					],
+					num : [
+						{ required: true, message: '请输入学号', trigger: 'blur' }
+					],
+					class:[
+						{ required: true, message: '请输入班级', trigger: 'blur' }
+					],
 				},
 				//新增界面数据
 				addForm: {
 					name: '',
-					sex: -1,
-					age: 0,
-					birth: '',
-					addr: ''
-				}
+					num: '',
+					class:'',
+				},
+				//筛选内容
+				classfilter:[],
 
 			}
 		},
@@ -167,14 +186,17 @@
 			getUsers() {
 				let para = {
 					page: this.page,
-					name: this.filters.name
+					num: this.filters.num,
+					class:this.filters.class,
+					pageSize:this.pageSize,//每页数
 				};
 				this.listLoading = true;
 				//NProgress.start();
 				getUserListPage(para).then((res) => {
-					this.total = res.data.data.length;
+					this.total = res.data.total;
 					this.users = res.data.data;
 					this.listLoading = false;
+					this.getstudentclass();
 					//NProgress.done();
 				});
 			},
@@ -188,15 +210,18 @@
 					let para = { id: row.id };
 					removeUser(para).then((res) => {
 						this.listLoading = false;
-						//NProgress.done();
-						this.$message({
-							message: '删除成功',
-							type: 'success'
-						});
-						this.getUsers();
+						if(res.data.code == 200){
+							this.$message({
+								message: res.data.msg,
+								type: 'success'
+							});
+							this.getUsers();
+						}else{
+							this.$message.error(res.data.msg);
+						}
 					});
 				}).catch(() => {
-
+					this.$message.error("网络故障");
 				});
 			},
 			//显示编辑界面
@@ -223,17 +248,19 @@
 							this.editLoading = true;
 							//NProgress.start();
 							let para = Object.assign({}, this.editForm);
-							para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
 							editUser(para).then((res) => {
 								this.editLoading = false;
-								//NProgress.done();
-								this.$message({
-									message: '提交成功',
-									type: 'success'
-								});
-								this.$refs['editForm'].resetFields();
-								this.editFormVisible = false;
-								this.getUsers();
+								if(res.data.code == 200){
+									this.$message({
+										message: res.data.msg,
+										type: 'success'
+									});
+									this.$refs['editForm'].resetFields();
+									this.editFormVisible = false;
+									this.getUsers();
+								}else{
+									this.$message.error(res.data.msg);
+								}
 							});
 						});
 					}
@@ -247,17 +274,19 @@
 							this.addLoading = true;
 							//NProgress.start();
 							let para = Object.assign({}, this.addForm);
-							para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
 							addUser(para).then((res) => {
 								this.addLoading = false;
-								//NProgress.done();
-								this.$message({
-									message: '提交成功',
-									type: 'success'
-								});
-								this.$refs['addForm'].resetFields();
-								this.addFormVisible = false;
-								this.getUsers();
+								if(res.data.code == 200){
+									this.$message({
+										message: res.data.msg,
+										type: 'success'
+									});
+									this.$refs['addForm'].resetFields();
+									this.addFormVisible = false;
+									this.getUsers();
+								}else{
+									this.$message.error(res.data.msg);
+								}
 							});
 						});
 					}
@@ -277,16 +306,67 @@
 					let para = { ids: ids };
 					batchRemoveUser(para).then((res) => {
 						this.listLoading = false;
-						//NProgress.done();
-						this.$message({
-							message: '删除成功',
-							type: 'success'
-						});
-						this.getUsers();
+						if(res.data.code == 200){
+							this.$message({
+								message: res.data.msg,
+								type: 'success'
+							});
+							this.getUsers();
+						}else{
+							this.$message.error(res.data.msg);
+						}
 					});
 				}).catch(() => {
-
+					this.$message.error("网络故障");
 				});
+			},
+			//beforeRemove()文件上传
+			beforeUpload(file){
+				var arr = file.name.split(".");
+				if(arr[1] == 'xls' || arr[1] == 'xlsx'){
+					let fileDate = new FormData();
+					fileDate.append('file',file);
+					this.contentLoading = true;
+					ImportStudentInfo(fileDate).then(res => {
+						this.contentLoading = false;
+						if(res.data.code == 200){
+							this.$message({
+					          message: res.data.msg,
+					          type: 'success'
+					        });
+					        this.getUsers();
+						}else{
+							this.$message.error(res.data.msg);
+						}
+					}).catch(ret => {
+						this.contentLoading = false;
+						this.$message.error('好像断网了，请检查！');
+					})
+				}else{
+					this.$message.error('只能上传xls和xlsx文件，请检查！');
+				}
+				return false;
+			},
+			//获取班级信息
+			getstudentclass(){
+				getClassInfo().then(res => {
+					// console.log(res.data);
+					var data = Object.assign([],res.data.data);
+					var classfilter = [];
+					for(var i = 0 ;i<data.length;i++){
+						let filters = {
+							text : data[i].class,
+							value :data[i].class
+						}
+						classfilter[i] = filters;
+					}
+					this.classfilter = classfilter;
+				}).catch(ret => {
+					this.$message.error('好像断网了，请检查！');
+				})
+			},
+			selectClass(value){
+				this.getUsers();
 			}
 		},
 		mounted() {

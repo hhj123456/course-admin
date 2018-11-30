@@ -75,7 +75,7 @@
 	export default {
 		data() {
 			return {
-				sysName:'实验课程管理系统',
+				sysName:'后台管理',
 				collapsed:false,
 				sysUserName: '',
 				sysUserAvatar: '',
