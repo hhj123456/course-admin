@@ -211,8 +211,23 @@
 						  							<el-input
 						  								type="textarea"
 	  													:rows="3"
-	  													placeholder="请输入答题的关键词"
+	  													placeholder="注意：以英文逗号分开每个关键词"
 						  								v-model="sub.analysis">		
+						  							</el-input>
+						  						</el-form-item>
+						  						</el-form-item>
+						  							<el-form-item
+						  							label="分数"
+						  							:prop="'question.'+ index + '.score'"
+						  							:rules="[
+													     	{ required: true, message:'请填写分数',trigger: 'blur' }
+													    ]"
+						  						>
+						  							<el-input
+						  								type = "number"
+						  								:min = "0"
+	  													placeholder="请输入分数"
+						  								v-model="sub.score">		
 						  							</el-input>
 						  						</el-form-item>
 						  					</div>
@@ -257,6 +272,11 @@
 									    <el-table-column
 									      prop="analysis"
 									      label="关键词"
+									      show-overflow-tooltip>
+									    </el-table-column>
+									     <el-table-column
+									      prop="score"
+									      label="分数"
 									      show-overflow-tooltip>
 									    </el-table-column>
 									    <el-table-column label="操作" width="150">
@@ -439,7 +459,7 @@
 			  </el-tab-pane>
 			</el-tabs>
 		</div>
-		<el-dialog title="实验测试主管题" :visible.sync="dialogTestFormVisible">
+		<el-dialog title="实验测试主观题" :visible.sync="dialogTestFormVisible">
 		  <el-form :model="testUpdate" ref="testUpdate" style="width: 70%;margin: 0 auto" :rules="testrules">
 		    <el-form-item label="题目描述" label-width="80" prop="topic">
 		      	<el-input v-model="testUpdate.topic" type="textarea" autocomplete="off"></el-input>
@@ -449,6 +469,9 @@
 		    </el-form-item>
 		    <el-form-item label="答题关键词" label-width="80" prop="analysis">
 		     	<el-input v-model="testUpdate.analysis" type="textarea" autocomplete="off"></el-input>
+		    </el-form-item>
+		     <el-form-item label="分数" label-width="80" prop="analysis">
+		     	<el-input v-model="testUpdate.score" type="number" :min="1" autocomplete="off"></el-input>
 		    </el-form-item>
 		  </el-form>
 		  <div slot="footer" class="dialog-footer">
@@ -618,11 +641,13 @@
 					topic:'',//题目描述
 					answer:'',//标准答案
 					analysis:'',//关键词
+					score:'',//分数
 				},
 				testrules:{
 					topic:[ { required: true, message: '请输入题目的描述', trigger: 'blur' }],
 					answer:[ { required: true, message: '请输入题目的标准答案', trigger: 'blur' }],
-					analysis:[ { required: true, message: '请输入题目的分析', trigger: 'blur' }]
+					analysis:[ { required: true, message: '请输入题目的分析', trigger: 'blur' }],
+					score:[ { required: true, message: '请输入分数', trigger: 'blur' }]
 				},
 				tableVisable:true,//表格显示
 				editVisable:false,//编辑显示
@@ -657,6 +682,7 @@
 							topic:"",//题目描述
 							answer:"",//标准答案
 							analysis:"",//答案解析
+							score:'',//题目分数
 						}
 					],
 				},

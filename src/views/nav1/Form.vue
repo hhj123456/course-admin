@@ -27,27 +27,37 @@
 
 		<!--列表-->
 		<el-table :data="users" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;">
-			<el-table-column type="index" width="60">
+			<el-table-column type="index" width="50">
 			</el-table-column>
-			<el-table-column prop="num" label="学号" width="120" show-overflow-tooltip align="center">
+			<el-table-column prop="num" label="学号" width="100" show-overflow-tooltip align="center">
 			</el-table-column>
 			<el-table-column prop="name" label="姓名" width="120" show-overflow-tooltip align="center">
 			</el-table-column>
-			<el-table-column prop="score" label="测试得分" width="120" show-overflow-tooltip  align="center" sortable>
+			<el-table-column prop="stime" label="签到时间" width="180" show-overflow-tooltip align="center">
+			</el-table-column>
+			<el-table-column prop="etime" label="签退时间"  width="180" show-overflow-tooltip align="center">
+			</el-table-column>
+			<el-table-column prop="duration" label="实验时长" width="120" show-overflow-tooltip sortable align="center">
+			</el-table-column>
+			<el-table-column prop="score" label="选择题得分" width="120" show-overflow-tooltip  align="center" sortable>
 				<template slot-scope="scope">
 					{{scope.row.score}}
 				</template>
 			</el-table-column>
-			<el-table-column prop="stime" label="签到时间" width="200" show-overflow-tooltip align="center">
+			<el-table-column prop="score" label="主观题得分" width="120" show-overflow-tooltip  align="center" sortable>
+				<template slot-scope="scope">
+					{{scope.row.reportscore}}
+				</template>
 			</el-table-column>
-			<el-table-column prop="etime" label="签退时间"  width="200" show-overflow-tooltip align="center">
-			</el-table-column>
-			<el-table-column prop="duration" label="实验时长" width="200" show-overflow-tooltip sortable align="center">
+			<el-table-column prop="score" label="总分" width="110" show-overflow-tooltip  align="center" sortable>
+				<template slot-scope="scope">
+					{{scope.row.reportscore + scope.row.score}}
+				</template>
 			</el-table-column>
 			<el-table-column label="操作" width="150">
 				 <template slot-scope="scope">
-					<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-					<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">查看</el-button>
+					<el-button size="small" @click="handleExprement(scope.$index, scope.row)">编辑</el-button>
+					<el-button type="danger" size="small" @click="handleEdit(scope.$index, scope.row)">查看</el-button>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -65,16 +75,43 @@
 				<p style="text-align: center;">
 					<span>班级：</span><span class="textspan">{{filters.classname}}</span>&nbsp;&nbsp;&nbsp;
 					<span>姓名：</span><span class="textspan">{{editForm.name}}</span>&nbsp;&nbsp;&nbsp;
-					<span>得分:</span><span class="textspan">{{editForm.score}}</span>
+					<span>得分:</span><span class="textspan">{{editForm.score + editForm.reportscore}}</span>
 				</p>
 				<div v-for = "item in stuExprement">
 					<div class="title">{{item.retitle}}</div>
 					<div class="content" v-html="item.recont"></div>
 				</div>
+				<div class="title">实验思考</div>
+				<div v-for = "item in stuExpreport">
+					<div class="titletopic">{{item.topic}}</div>
+					<div v-html="item.content" style="padding-left: 30px"></div>
+				</div>
 			</div>
 			<div slot="footer" class="dialog-footer">
 				<el-button @click.native="editFormVisible = false">取消</el-button>
-				<el-button type="primary" @click.native="editSubmit" :loading="editLoading">提交</el-button>
+				<el-button type="primary" @click.native="uploadExprement" :loading="editLoading">下载</el-button>
+			</div>
+		</el-dialog>
+
+		<!--编辑分数界面-->
+		<el-dialog title="实验思考主观题" :visible.sync="editExpreVisible" :close-on-click-modal="false" v-loading = "eldialogscore">
+			<div>
+				<p style="text-align: center;">
+					<span>班级：</span><span class="textspan">{{filters.classname}}</span>&nbsp;&nbsp;&nbsp;
+					<span>姓名：</span><span class="textspan">{{editForm.name}}</span>&nbsp;&nbsp;&nbsp;
+					<!-- <span>得分:</span><span class="textspan">{{editForm.score}}</span> -->
+				</p>
+				<div class="title">实验思考</div>
+				<div v-for = "(item,index) in stuExpreport">
+					<div class="titletopic">{{item.topic}}</div>
+					<div v-html="item.content" style="padding-left: 30px"></div>
+					<span style="padding-left: 20px;">请输入分数：</span>
+					<el-input v-model="item.score" placeholder="请输入分数" type="number" :min="0" style="width: 300px"></el-input>
+					<el-button type="warning" @click="submitscore(index)">保存</el-button>
+				</div>
+			</div>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click.native="editFormVisible = false">关闭</el-button>
 			</div>
 		</el-dialog>
 
@@ -111,7 +148,7 @@
 <script>
 	import util from '../../common/js/util'
 	//import NProgress from 'nprogress'
-	import { getUserListPage, removeUser, batchRemoveUser, editUser, addUser,getClassInfo,getExperimentnameInfo,getStudentAllInfo,getStuExreportAll} from '../../api/api';
+	import { getUserListPage, removeUser, batchRemoveUser, editUser, addUser,getClassInfo,getExperimentnameInfo,getStudentAllInfo,getStuExreportAll,updatescore} from '../../api/api';
 
 	export default {
 		data() {
@@ -127,6 +164,7 @@
 				sels: [],//列表选中列
 
 				editFormVisible: false,//编辑界面是否显示
+				editExpreVisible:false,//编辑分数页面是否显示
 				editLoading: false,
 				editFormRules: {
 					name: [
@@ -159,6 +197,8 @@
 			    ],//班级信息
 			    stuExprement:[],//实验目的
 			    stuExpreport:[],//实验报告
+			    report:[],//主观题分数
+			    eldialogscore:false,//加载
 			}
 		},
 		methods: {
@@ -213,8 +253,21 @@
 				getStuExreportAll(param).then(res =>{
 					this.stuExprement = Object.assign([],res.data.data);
 					this.stuExpreport = Object.assign([],res.data.report);
+
 				})
 				// console.log(row);
+			},//显示分数编辑页面
+			handleExprement(index, row){
+				this.editExpreVisible = true;
+				this.editForm = Object.assign({}, row);
+				let param = {
+					exid : row.exid,
+					stuid : row.id
+				}
+				getStuExreportAll(param).then(res =>{
+					this.stuExpreport = Object.assign([],res.data.report);
+
+				})
 			},
 			//显示新增界面
 			handleAdd: function () {
@@ -329,6 +382,25 @@
 			    }
 			    return (zero + num).slice(-digit);
 			},
+			//下载实验报告
+			uploadExprement(){
+
+			},
+			//保存分数
+			submitscore(index){
+				updatescore(this.stuExpreport[index]).then(res => {
+					if(res.data.code == 200){
+						this.$message({
+				          message: res.data.msg,
+				          type: 'success'
+				        });
+					}else{
+						this.$message.error(res.data.msg);
+					}
+				}).catch(ret => {
+					this.$message.error(res.data.msg);
+				})
+			}
 
 		},
 		mounted() {
@@ -351,5 +423,10 @@
 	}
 	.content{
 		padding: 10px 15px;
+	}
+	.titletopic{
+		font-size: 14px;
+		padding:10px 15px;
+		font-weight: bold;
 	}
 </style>
