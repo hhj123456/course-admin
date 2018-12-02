@@ -409,6 +409,18 @@ export const getExperimentnameInfo = params => {
       	}
     ); 
 };
+//获取学生报告
+export const getStuExreportAll = params => { 
+    return axios.post(
+        `${base}/Expinfo/index`,
+        Qs.stringify(params),
+        {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        }
+    ); 
+};
 
 //获取目前实验以及班级的签到情况
 export const getStudentAllInfo = params => { 

@@ -29,17 +29,20 @@
 		<el-table :data="users" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;">
 			<el-table-column type="index" width="60">
 			</el-table-column>
-			<el-table-column prop="num" label="学号" width="120"  sortable>
+			<el-table-column prop="num" label="学号" width="120" show-overflow-tooltip align="center">
 			</el-table-column>
-			<el-table-column prop="name" label="姓名" width="120">
+			<el-table-column prop="name" label="姓名" width="120" show-overflow-tooltip align="center">
 			</el-table-column>
-			<el-table-column prop="score" label="测试得分" width="120"  sortable>
+			<el-table-column prop="score" label="测试得分" width="120" show-overflow-tooltip  align="center" sortable>
+				<template slot-scope="scope">
+					{{scope.row.score}}
+				</template>
 			</el-table-column>
-			<el-table-column prop="stime" label="签到时间" width="200"  sortable>
+			<el-table-column prop="stime" label="签到时间" width="200" show-overflow-tooltip align="center">
 			</el-table-column>
-			<el-table-column prop="etime" label="签退时间"  width="200" sortable>
+			<el-table-column prop="etime" label="签退时间"  width="200" show-overflow-tooltip align="center">
 			</el-table-column>
-			<el-table-column prop="duration" label="实验时长" width="200"  sortable>
+			<el-table-column prop="duration" label="实验时长" width="200" show-overflow-tooltip sortable align="center">
 			</el-table-column>
 			<el-table-column label="操作" width="150">
 				 <template slot-scope="scope">
@@ -57,27 +60,18 @@
 		</el-col>
 
 		<!--编辑界面-->
-		<el-dialog title="编辑" v-model="editFormVisible" :close-on-click-modal="false">
-			<el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
-				<el-form-item label="姓名" prop="name">
-					<el-input v-model="editForm.name" auto-complete="off"></el-input>
-				</el-form-item>
-				<el-form-item label="性别">
-					<el-radio-group v-model="editForm.sex">
-						<el-radio class="radio" :label="1">男</el-radio>
-						<el-radio class="radio" :label="0">女</el-radio>
-					</el-radio-group>
-				</el-form-item>
-				<el-form-item label="年龄">
-					<el-input-number v-model="editForm.age" :min="0" :max="200"></el-input-number>
-				</el-form-item>
-				<el-form-item label="生日">
-					<el-date-picker type="date" placeholder="选择日期" v-model="editForm.birth"></el-date-picker>
-				</el-form-item>
-				<el-form-item label="地址">
-					<el-input type="textarea" v-model="editForm.addr"></el-input>
-				</el-form-item>
-			</el-form>
+		<el-dialog title="实验报告" :visible.sync="editFormVisible" :close-on-click-modal="false">
+			<div>
+				<p style="text-align: center;">
+					<span>班级：</span><span class="textspan">{{filters.classname}}</span>&nbsp;&nbsp;&nbsp;
+					<span>姓名：</span><span class="textspan">{{editForm.name}}</span>&nbsp;&nbsp;&nbsp;
+					<span>得分:</span><span class="textspan">{{editForm.score}}</span>
+				</p>
+				<div v-for = "item in stuExprement">
+					<div class="title">{{item.retitle}}</div>
+					<div class="content" v-html="item.recont"></div>
+				</div>
+			</div>
 			<div slot="footer" class="dialog-footer">
 				<el-button @click.native="editFormVisible = false">取消</el-button>
 				<el-button type="primary" @click.native="editSubmit" :loading="editLoading">提交</el-button>
@@ -117,7 +111,7 @@
 <script>
 	import util from '../../common/js/util'
 	//import NProgress from 'nprogress'
-	import { getUserListPage, removeUser, batchRemoveUser, editUser, addUser,getClassInfo,getExperimentnameInfo,getStudentAllInfo} from '../../api/api';
+	import { getUserListPage, removeUser, batchRemoveUser, editUser, addUser,getClassInfo,getExperimentnameInfo,getStudentAllInfo,getStuExreportAll} from '../../api/api';
 
 	export default {
 		data() {
@@ -141,12 +135,8 @@
 				},
 				//编辑界面数据
 				editForm: {
-					id: 0,
-					name: '',
-					sex: -1,
-					age: 0,
-					birth: '',
-					addr: ''
+					name : '',//姓名
+					score: '',//分数
 				},
 
 				addFormVisible: false,//新增界面是否显示
@@ -167,6 +157,8 @@
 				options: [],//实验信息
 			    classoption:[
 			    ],//班级信息
+			    stuExprement:[],//实验目的
+			    stuExpreport:[],//实验报告
 			}
 		},
 		methods: {
@@ -184,7 +176,7 @@
 				//NProgress.start();
 				getStudentAllInfo(this.filters).then((res) => {
 					this.users = res.data.data;
-					console.log(this.users);
+					// console.log(this.users);
 					this.listLoading = false;
 					//NProgress.done();
 				});
@@ -214,6 +206,15 @@
 			handleEdit: function (index, row) {
 				this.editFormVisible = true;
 				this.editForm = Object.assign({}, row);
+				let param = {
+					exid : row.exid,
+					stuid : row.id
+				}
+				getStuExreportAll(param).then(res =>{
+					this.stuExprement = Object.assign([],res.data.data);
+					this.stuExpreport = Object.assign([],res.data.report);
+				})
+				// console.log(row);
 			},
 			//显示新增界面
 			handleAdd: function () {
@@ -340,5 +341,15 @@
 </script>
 
 <style scoped>
-
+	.textspan{
+		text-decoration:underline;
+	}
+	.title{
+		font-weight: bold;
+		font-size: 15px;
+		padding:10px 15px;
+	}
+	.content{
+		padding: 10px 15px;
+	}
 </style>
