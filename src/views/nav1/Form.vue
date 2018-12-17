@@ -11,7 +11,7 @@
 				      :value="item.value">
 				    </el-option>
 				</el-select>
-				<el-select v-model="filters.exid" filterable placeholder="请选择实验">
+				<el-select v-model="filters.exid" filterable placeholder="请选择实验" @change = "changeSelect">
 				    <el-option
 				      v-for="item in options"
 				      :key="item.id"
@@ -26,7 +26,7 @@
 		</el-col>
 
 		<!--列表-->
-		<el-table :data="users" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;">
+		<el-table :data="users" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;"  height="500">
 			<el-table-column type="index" width="50">
 			</el-table-column>
 			<el-table-column prop="num" label="学号" width="100" show-overflow-tooltip align="center">
@@ -39,24 +39,29 @@
 			</el-table-column>
 			<el-table-column prop="duration" label="实验时长" width="120" show-overflow-tooltip sortable align="center">
 			</el-table-column>
-			<el-table-column prop="score" label="选择题得分" width="120" show-overflow-tooltip  align="center" sortable>
+			<el-table-column prop="score" label="实验预习" width="120" show-overflow-tooltip  align="center" sortable>
 				<template slot-scope="scope">
 					{{scope.row.score}}
 				</template>
 			</el-table-column>
-			<el-table-column prop="score" label="主观题得分" width="120" show-overflow-tooltip  align="center" sortable>
+			<el-table-column prop="score" label="实验操作" width="120" show-overflow-tooltip  align="center" sortable>
+				<template slot-scope="scope">
+					{{scope.row.operationscore}}
+				</template>
+			</el-table-column>
+			<el-table-column prop="score" label="实验报告" width="120" show-overflow-tooltip  align="center" sortable>
 				<template slot-scope="scope">
 					{{scope.row.reportscore}}
 				</template>
 			</el-table-column>
 			<el-table-column prop="score" label="总分" width="110" show-overflow-tooltip  align="center" sortable>
 				<template slot-scope="scope">
-					{{scope.row.reportscore + scope.row.score}}
+					{{scope.row.rationscore}}
 				</template>
 			</el-table-column>
-			<el-table-column label="操作" width="150">
+			<el-table-column label="操作" width="200">
 				 <template slot-scope="scope">
-					<el-button size="small" @click="handleExprement(scope.$index, scope.row)">编辑</el-button>
+					<el-button size="small" @click="handleExprement(scope.$index, scope.row)">分数</el-button>
 					<el-button type="danger" size="small" @click="handleEdit(scope.$index, scope.row)">查看</el-button>
 				</template>
 			</el-table-column>
@@ -71,25 +76,28 @@
 
 		<!--编辑界面-->
 		<el-dialog title="实验报告" :visible.sync="editFormVisible" :close-on-click-modal="false">
-			<div>
-				<p style="text-align: center;">
-					<span>班级：</span><span class="textspan">{{filters.classname}}</span>&nbsp;&nbsp;&nbsp;
-					<span>姓名：</span><span class="textspan">{{editForm.name}}</span>&nbsp;&nbsp;&nbsp;
-					<span>得分:</span><span class="textspan">{{editForm.score + editForm.reportscore}}</span>
+			<div id="pdfDom"  ref="resume">
+				<p style="text-align: center;line-height: 50px;font-size: 20px;font-weight: bold">{{ExprementName}}</p>
+				<p style="text-align: center;line-height: 50px;">
+					<span>班级：</span><span style="text-decoration:underline;">&nbsp;{{filters.classname}}&nbsp;</span>&nbsp;&nbsp;&nbsp;
+					<span>姓名：</span><span  style="text-decoration:underline;">&nbsp;{{editForm.name}}&nbsp;</span>&nbsp;&nbsp;&nbsp;
+					<span>得分:</span>&nbsp;&nbsp;<span  style="text-decoration:underline;">&nbsp;&nbsp;{{editForm.rationscore}} &nbsp;&nbsp;</span>
 				</p>
 				<div v-for = "item in stuExprement">
-					<div class="title">{{item.retitle}}</div>
-					<div class="content" v-html="item.recont"></div>
+					<div style="font-weight: bold;font-size: 15px;padding:10px 15px;">{{item.retitle}}</div>
+					<div style="padding: 10px 15px;" v-html="item.recont"></div>
 				</div>
 				<div class="title">实验思考</div>
 				<div v-for = "item in stuExpreport">
-					<div class="titletopic">{{item.topic}}</div>
-					<div v-html="item.content" style="padding-left: 30px"></div>
+					<div style="font-size: 14px;padding:10px 15px;font-weight: bold;">
+						{{item.topic}}<span>(总分:{{item.Allscore}}分)</span>
+					</div>
+					<div v-html="item.content" style="padding-left: 30px;min-height: 140px"></div>
 				</div>
 			</div>
 			<div slot="footer" class="dialog-footer">
 				<el-button @click.native="editFormVisible = false">取消</el-button>
-				<el-button type="primary" @click.native="uploadExprement" :loading="editLoading">下载</el-button>
+				<el-button type="primary" @click.native="uploadExprement()" :loading="editLoading">下载</el-button>
 			</div>
 		</el-dialog>
 
@@ -103,15 +111,22 @@
 				</p>
 				<div class="title">实验思考</div>
 				<div v-for = "(item,index) in stuExpreport">
-					<div class="titletopic">{{item.topic}}</div>
+					<div class="titletopic">
+						{{item.topic}}
+						<span style="color: red">(总分：{{item.Allscore}}分)</span>
+					</div>
 					<div v-html="item.content" style="padding-left: 30px"></div>
 					<span style="padding-left: 20px;">请输入分数：</span>
-					<el-input v-model="item.score" placeholder="请输入分数" type="number" :min="0" style="width: 300px"></el-input>
-					<el-button type="warning" @click="submitscore(index)">保存</el-button>
+					<el-input v-model="item.score" placeholder="请输入分数" type="number" :min="0" :max="item.Allscore" style="width: 300px"></el-input>
+					<el-button type="warning" @click="submitscore(index,item.Allscore)">保存</el-button>
 				</div>
+				<div class="title" style="margin-top: 20px">操作得分</div>
+				<span style="padding-left: 20px;">请输入分数：</span>
+				<el-input v-model="editForm.operationscore" placeholder="请输入分数" type="number" :min="0" :max="100" style="width: 300px"></el-input>
+				<el-button type="warning" @click="updateoperationscore">保存</el-button>
 			</div>
 			<div slot="footer" class="dialog-footer">
-				<el-button @click.native="editFormVisible = false">关闭</el-button>
+				<el-button @click.native="editExpreVisible = false">关闭</el-button>
 			</div>
 		</el-dialog>
 
@@ -148,7 +163,7 @@
 <script>
 	import util from '../../common/js/util'
 	//import NProgress from 'nprogress'
-	import { getUserListPage, removeUser, batchRemoveUser, editUser, addUser,getClassInfo,getExperimentnameInfo,getStudentAllInfo,getStuExreportAll,updatescore} from '../../api/api';
+	import { getUserListPage, removeUser, batchRemoveUser, editUser, addUser,getClassInfo,getExperimentnameInfo,getStudentAllInfo,getStuExreportAll,updatescore,htmltowordurl,updateopretion} from '../../api/api';
 
 	export default {
 		data() {
@@ -199,6 +214,8 @@
 			    stuExpreport:[],//实验报告
 			    report:[],//主观题分数
 			    eldialogscore:false,//加载
+			    htmlTitle: '',
+			    ExprementName:'',//当前实验的名称
 			}
 		},
 		methods: {
@@ -250,6 +267,7 @@
 					exid : row.exid,
 					stuid : row.id
 				}
+				this.htmlTitle += "-"+row.name+"实验报告";
 				getStuExreportAll(param).then(res =>{
 					this.stuExprement = Object.assign([],res.data.data);
 					this.stuExpreport = Object.assign([],res.data.report);
@@ -266,7 +284,7 @@
 				}
 				getStuExreportAll(param).then(res =>{
 					this.stuExpreport = Object.assign([],res.data.report);
-
+					// console.log(this.stuExpreport);
 				})
 			},
 			//显示新增界面
@@ -370,7 +388,7 @@
 			getExperimentname(){
 				getExperimentnameInfo().then(res => {
 					// console.log(res.data.data);
-					this.options = res.data.data
+					this.options = res.data.data;
 				}).catch( ret => {
 					this.$message.error("网络故障");
 				})
@@ -384,10 +402,31 @@
 			},
 			//下载实验报告
 			uploadExprement(){
-
+				const template  =this.$refs.resume.innerHTML;
+				let html = `<!DOCTYPE html>
+				<html>
+				<head>
+					<title></title>
+					<meta charset="utf-8">
+				</head>
+				<body>
+					${template}
+				</body>
+				</html>`;
+				var a = document.createElement('a');
+			    var url = window.URL.createObjectURL(new Blob([html],
+			        { type: "text/html" + ";charset=" + 'utf-8' }));
+			    a.href = url;
+			    a.download = this.htmlTitle || 'file';
+			    a.click();
+			    window.URL.revokeObjectURL(url);
 			},
 			//保存分数
-			submitscore(index){
+			submitscore(index,Allscore){
+				if(Number(this.stuExpreport[index].score) > Number(Allscore)){
+					this.$message.error('得分不能大于题目总分！');
+					return false;
+				}
 				updatescore(this.stuExpreport[index]).then(res => {
 					if(res.data.code == 200){
 						this.$message({
@@ -398,7 +437,36 @@
 						this.$message.error(res.data.msg);
 					}
 				}).catch(ret => {
-					this.$message.error(res.data.msg);
+					this.$message.error("网络故障");
+				})
+			},
+			//选择
+			changeSelect(value){
+				for (var i = 0; i < this.options.length; i++) {
+					if(this.options[i].id == value){
+						this.ExprementName = this.options[i].ename;
+						this.htmlTitle = this.options[i].ename;
+					}
+				}
+			},
+			//修改操作得分
+			updateoperationscore(){
+				// console.log(this.editForm);
+				if(this.editForm.operationscore > 100){
+					this.$message.error("操作得分不得大于100");
+					return false;
+				}
+				updateopretion(this.editForm).then(res => {
+					if(res.data.code == 200){
+						this.$message({
+				          message: res.data.msg,
+				          type: 'success'
+				        });
+					}else{
+						this.$message.error(res.data.msg);
+					}
+				}).catch(ret => {
+					this.$message.error("网络故障");
 				})
 			}
 

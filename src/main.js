@@ -18,7 +18,10 @@ import 'quill/dist/quill.snow.css'
 import 'quill/dist/quill.bubble.css'
 // Mock.bootstrap();//开启假数据
 import 'font-awesome/css/font-awesome.min.css'
+import htmlToPdf from '@/components/htmlToPdf'
 
+
+Vue.use(htmlToPdf)
 Vue.use(VueQuillEditor);
 Vue.use(ElementUI)
 Vue.use(VueRouter)

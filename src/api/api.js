@@ -448,6 +448,55 @@ export const updatescore = params => {
     ); 
 };
 
+//导出文档地址
+export const htmltowordurl = params => { 
+    return axios.post(
+        `${base}/HtmlToWord/index`,
+        params,
+        {
+        	responseType: 'blob'
+        }
+    ); 
+};
+
+//获取实验比例
+export const rationSelect = params => { 
+	return axios.post(
+		`${base}/Addexperiment/rationSelect`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+
+//更新实验比例
+export const updateratio = params => { 
+	return axios.post(
+		`${base}/Addexperiment/updateratio`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+
+//更新操作成绩
+export const updateopretion = params => { 
+	return axios.post(
+		`${base}/Expinfo/updateoperationscore`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
 // //获取课程名
 // export const getCourseName = params => {return axios.get(`${base}/course/project`, { params: params })};
 // //获取章节名
