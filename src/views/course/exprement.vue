@@ -83,9 +83,6 @@
 			    		<el-form-item label="课程名称">
 						    <el-input v-model="exprement.projectname" disabled></el-input>
 						</el-form-item>
-						<el-form-item label="章节名称">
-						    <el-input v-model="exprement.chaptername" disabled></el-input>
-						</el-form-item>
 						<el-form-item label="实验名称">
 						    <el-input v-model="exprement.name"></el-input>
 						</el-form-item>
@@ -96,7 +93,7 @@
 						    <el-input v-model="exprement.time"></el-input>
 						</el-form-item>
 						<el-form-item label="实验班级">
-						    <el-input v-model="exprement.class" disabled></el-input>
+						    <el-input v-model="exprement.class" disabled  type="textarea"  :rows="3"></el-input>
 						</el-form-item>
 						<el-form-item>
 						    <el-button type="primary" @click="saveBasic" style="float: right;">保存</el-button>
@@ -475,7 +472,7 @@
 					  </el-table>
 			  	</div>
 			  </el-tab-pane>
-			  <el-tab-pane name="sixth">
+			 <!--  <el-tab-pane name="sixth">
 			  	<span slot="label"><i class="el-icon-setting"></i> 分数比例管理</span>
 			  	<div>
 			  		<el-form :model="ratio" status-icon label-width="100px" class="demo-ruleForm" style="width: 383px;margin-left:100px">
@@ -493,7 +490,7 @@
 						</el-form-item>
 			  		</el-form>	
 			  	</div>
-			  </el-tab-pane>
+			  </el-tab-pane> -->
 			</el-tabs>
 		</div>
 		<el-dialog title="实验测试主观题" :visible.sync="dialogTestFormVisible">
@@ -718,7 +715,6 @@
 					retitle:'实验结果与总结',
 					children:[
 						{retitle:"综合测试"},
-						{retitle:"实验总结"},
 						{retitle:"测试题管理"},
 					]
 				}],

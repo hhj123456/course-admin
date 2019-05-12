@@ -27,7 +27,7 @@
 				            size="mini"
 				            icon="el-icon-plus"
 				            circle
-				            v-show="node.level!==3"
+				            v-show="node.level!==2"
 				            @click="() => append(node,data)">
 				          </el-button>
 				          <el-button
@@ -48,7 +48,7 @@
 		  			{{project.title}}
 		  		</div>
 		  		<div class="modelcontent">
-			  		<el-form :model="project" :rules="projectrules" ref="project" label-width="100px" class="demo-ruleForm" label-position="top">
+			  		<el-form :model="project" :rules="projectrules" ref="project" label-width="100px" class="demo-ruleForm" label-position="top" >
 			  			<el-form-item label="课程名称" prop="name">
 	    					<el-input v-model="project.name"  placeholder="请输入课程名称"></el-input>
 	  					</el-form-item>
@@ -66,6 +66,15 @@
 	  					<el-form-item label="任课教师所属学院" prop="teachercollege">
 	    					<el-input v-model="project.teachercollege"  placeholder="请输入任课教师所属学院"></el-input>
 	  					</el-form-item>
+	  					<el-form-item label="实验预习比例(%)" prop="preparation">
+			  				<el-input-number v-model="project.preparation" :min="1"></el-input-number>
+			  			</el-form-item>
+			  			<el-form-item label="实验操作比例(%)" prop="operation">
+			  				<el-input-number v-model="project.operation" :min="1"></el-input-number>
+			  			</el-form-item>
+			  			<el-form-item label="实验报告比例(%)" prop="report">
+			  				<el-input-number v-model="project.report" :min="1"></el-input-number>
+			  			</el-form-item>
 	  					<el-form-item label="课程缩略图" prop="projectimg">
 	  						<el-input v-model="project.projectimg" v-show="false"></el-input>
 	    					<el-upload
@@ -122,9 +131,9 @@
 			  			<el-form-item label="课程名称" prop="projectname">
 	    					<el-input v-model="experiment.projectname" :disabled="true" ></el-input>
 	  					</el-form-item>
-	  					<el-form-item label="章节名称" prop="chaptername">
+	  					<!-- <el-form-item label="章节名称" prop="chaptername">
 	    					<el-input v-model="experiment.chaptername" :disabled="true"></el-input>
-	  					</el-form-item>
+	  					</el-form-item> -->
 	  					<el-form-item label="实验名称" prop="name">
 	    					<el-input v-model="experiment.name" placeholder="请输入实验名称" ></el-input>
 	  					</el-form-item>
@@ -171,6 +180,9 @@
 		        	teachercollege:'',//任课老师所属学院
 		        	projectimg:'',//课程图片
 		        	imgfile:'',//图片属性
+		        	preparation:30,//预习比例
+		        	operation:40,//操作比例
+		        	report:30,//报告比例
 		        },//课程名
 		        projectrules:{
 		        	name:[{ required: true, message: '请输入课程名称', trigger: 'blur' }],
@@ -178,6 +190,9 @@
 		        	teachername:[{ required: true, message: '请输入任课教师姓名', trigger: 'blur' }],
 		        	teachercollege:[{ required: true, message: '所属学院', trigger: 'blur' }],
 		        	projectimg:[{ required: true, message: '请上传缩略图', trigger: 'blur' }],
+		        	preparation:[{ required: true, message: '请输入预习成绩比例', trigger: 'blur' }],
+		        	operation:[{ required: true, message: '请输入操作成绩比例', trigger: 'blur' }],
+		        	report:[{ required: true, message: '请输入报告成绩比例', trigger: 'blur' }],
 		        },
 		        chapter:{
 		        	title:'新增章节',//文章标题
@@ -202,7 +217,8 @@
 		        	time:'',//实验时长
 		        },//实验名称
 		        experimentrules:{
-		        	name:[{ required: true, message: '请输入实验名称', trigger: 'blur' }]
+		        	name:[{ required: true, message: '请输入实验名称', trigger: 'blur' }],
+		        	time:[{ required: true, message: '请输入实验时长', trigger: 'blur' }],
 		        },//验证信息
 		        dialogImageUrl: '',
         		dialogVisible: false,
@@ -230,6 +246,9 @@
 		        	teachercollege:'',//任课老师所属学院
 		        	projectimg:'',//课程图片
 		        	imgfile:'',//图片属性
+		        	preparation:30,//预习比例
+		        	operation:40,//操作比例
+		        	report:30,//报告比例
 		        };
 		        this.chapter = {
 		        	title:'修改章节',//文章标题
@@ -258,16 +277,13 @@
 		    		this.project.id = data.id;
 		    		this.project.teachercollege = data.tcollege;
 		    		this.project.projectimg = baseImge+data.image; 
+		    		this.project.preparation = data.preparation;
+		    		this.project.operation = data.operation;
+		    		this.project.report = data.report;
+		    		// console.log(data);
+
 		    	}else if(node.level === 2){
-		    		this.chapter.coid = node.parent.id;
-		    		this.chapter.name = node.label;
-		    		this.chapter.id = data.id;
-		    		this.chapter.projectname = node.parent.label;
-		    		this.chapter.description = data.cainfo;
-		    		this.chapterVisable = true;
-		    	}else if(node.level === 3){
-		    		this.experiment.projectname = node.parent.parent.label;
-		    		this.experiment.chaptername = node.parent.label;
+		    		this.experiment.projectname = node.parent.label;
 		    		this.experiment.name = node.label;
 		    		this.experiment.id = data.id;
 		    		this.experiment.description = data.einfo;
@@ -280,6 +296,7 @@
 		    	getProject().then(res =>{
 		    		this.getCourseNameLoading=false;
 		    		this.data = JSON.parse(JSON.stringify(res.data.data));
+		    		// console.log(this.data);
 		    	})
 		    },
 		    //删除
@@ -313,23 +330,6 @@
 			        			}
 			        		})
 			        	}else if(node.level == 2){
-			        		let param = {
-			        			id : data.id
-			        		}
-			        		removeChapter(param).then(res =>{
-			        			if(res.data.code === 200){
-			        				this.$message({
-							            type: 'success',
-							            message: res.data.msg
-							        });
-			        				this.getprojcet();
-			        				this.chapterVisable = false;
-
-			        			}else{
-			        				this.$message.error(res.data.msg);
-			        			}
-			        		});
-			        	}else if(node.level == 3){
 			        		let param = {
 			        			id : data.id
 			        		}
@@ -384,6 +384,9 @@
 		        	teachername:'',//任课老师姓名
 		        	teachercollege:'',//任课老师所属学院
 		        	projectimg:'',//课程图片
+		        	preparation:30,//预习比例
+		        	operation:40,//操作比例
+		        	report:30,//报告比例
 		        };
 		    },
 		    //点击添加按钮
@@ -391,19 +394,11 @@
 		    	this.chapterVisable = false;
 		    	this.experimentVisable = false;
 		    	this.projectVisable = false;
-		        this.chapter = {
-		        	title:'新增章节',//文章标题
-		        	id:'',//章节id
-		        	coid:'',//课程id
-		        	projectname:'',//课程名称
-		        	name:'',//章节名称
-		        	description:'',//章节描述
-		        };
 		        this.experiment ={
 		        	title:'新增实验',//新增实验
 		        	id:'',//实验ID
 		        	coid:'',//课程id
-		        	caid:'',//章节ID
+		        	// caid:'',//章节ID
 		        	projectname:'',//课程名称
 		        	chaptername:'',//章节名称
 		        	name:'',//实验名称
@@ -411,14 +406,9 @@
 		        	time:'',//实验时长
 		        };
 		    	if(node.level === 1){
-		    		this.chapter.coid = data.id;
-		    		this.chapter.projectname = data.name;
-		    		this.chapterVisable = true;
-		    	}else if(node.level === 2){
-		    		this.experiment.coid = node.parent.data.id;
-		    		this.experiment.caid = node.data.id;
-		    		this.experiment.projectname = node.parent.label;
-		    		this.experiment.chaptername = node.label;
+		    		this.experiment.coid = node.data.id;
+		    		// this.experiment.caid = node.data.id;
+		    		this.experiment.projectname = node.data.coname;
 		    		this.experimentVisable = true;
 		    	}
 		    },
@@ -432,6 +422,13 @@
 		          		fileDate.append('description',this.project.description);
 		          		fileDate.append('teachername',this.project.teachername);
 		          		fileDate.append('teachercollege',this.project.teachercollege);
+		          		fileDate.append('preparation',this.project.preparation);
+		          		fileDate.append('operation',this.project.operation);
+		          		fileDate.append('report',this.project.report);
+		          		if((this.project.operation + this.project.preparation + this.project.report) != 100){
+		          			this.$message.error("比例之和需要等于100");
+		          			return false
+		          		}
 		          		if(this.project.id ==''){
 			          		fileDate.append('image',this.project.imgfile);
 			          		this.saveloading = true;

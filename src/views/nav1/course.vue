@@ -11,16 +11,17 @@
 				      :value="item.value">
 				    </el-option>
 				</el-select>
-				<el-select v-model="filters.exid" filterable placeholder="请选择实验" @change = "changeSelect">
+				<el-select v-model="filters.exid" filterable placeholder="请选择课程" @change = "changeSelect">
 				    <el-option
 				      v-for="item in options"
 				      :key="item.id"
-				      :label="item.ename"
+				      :label="item.coname"
 				      :value="item.id">
 				    </el-option>
 				</el-select>
 				<el-form-item>
 					<el-button type="primary" v-on:click="getUsers">查询</el-button>
+					<el-button type="danger" v-on:click="UploadCourse" v-show="downloadFlag">下载</el-button>
 				</el-form-item>
 			</el-form>
 		</el-col>
@@ -29,42 +30,36 @@
 		<el-table :data="users" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;"  height="500">
 			<el-table-column type="index" width="50">
 			</el-table-column>
-			<el-table-column prop="num" label="学号" width="100" show-overflow-tooltip align="center">
+			<el-table-column prop="num" label="学号"  show-overflow-tooltip align="center">
 			</el-table-column>
-			<el-table-column prop="name" label="姓名" width="120" show-overflow-tooltip align="center">
+			<el-table-column prop="name" label="姓名" show-overflow-tooltip align="center">
 			</el-table-column>
-			<el-table-column prop="stime" label="签到时间" width="180" show-overflow-tooltip align="center">
-			</el-table-column>
-			<el-table-column prop="etime" label="签退时间"  width="180" show-overflow-tooltip align="center">
-			</el-table-column>
-			<el-table-column prop="duration" label="实验时长" width="120" show-overflow-tooltip sortable align="center">
-			</el-table-column>
-			<el-table-column prop="score" label="实验预习" width="120" show-overflow-tooltip  align="center" sortable>
+			<el-table-column prop="stuChoice" label="实验预习"  show-overflow-tooltip  align="center" sortable>
 				<template slot-scope="scope">
-					{{scope.row.score.toFixed(2)}}
+					{{scope.row.stuChoice.toFixed(2)}}
 				</template>
 			</el-table-column>
-			<el-table-column prop="operationscore" label="实验操作" width="120" show-overflow-tooltip  align="center" sortable>
+			<el-table-column prop="operationscore" label="实验操作" show-overflow-tooltip  align="center" sortable>
 				<template slot-scope="scope">
-					{{scope.row.operationscore.toFixed(2)}}
+					{{scope.row.stuOperation.toFixed(2)}}
 				</template>
 			</el-table-column>
-			<el-table-column prop="reportscore" label="实验报告" width="120" show-overflow-tooltip  align="center" sortable>
+			<el-table-column prop="reportscore" label="实验报告"  show-overflow-tooltip  align="center" sortable>
 				<template slot-scope="scope">
-					{{scope.row.reportscore.toFixed(2)}}
+					{{scope.row.stuReport.toFixed(2)}}
 				</template>
 			</el-table-column>
-			<el-table-column prop="rationscore" label="总分" width="110" show-overflow-tooltip  align="center" sortable>
+			<el-table-column prop="rationscore" label="总分"  show-overflow-tooltip  align="center" sortable>
 				<template slot-scope="scope">
-					{{scope.row.rationscore.toFixed(2)}}
+					{{scope.row.stuAllScore.toFixed(2)}}
 				</template>
 			</el-table-column>
-			<el-table-column label="操作" width="200">
+		<!-- 	<el-table-column label="操作" width="200">
 				 <template slot-scope="scope">
 					<el-button size="small" @click="handleExprement(scope.$index, scope.row)">分数</el-button>
 					<el-button type="danger" size="small" @click="handleEdit(scope.$index, scope.row)">查看</el-button>
 				</template>
-			</el-table-column>
+			</el-table-column> -->
 		</el-table>
 
 		<!--工具条-->
@@ -163,7 +158,7 @@
 <script>
 	import util from '../../common/js/util'
 	//import NProgress from 'nprogress'
-	import { getUserListPage, removeUser, batchRemoveUser, editUser, addUser,getClassInfo,getExperimentnameInfo,getStudentAllInfo,getStuExreportAll,updatescore,htmltowordurl,updateopretion} from '../../api/api';
+	import { getUserListPage, removeUser, batchRemoveUser, editUser, addUser,getClassInfo,getProjectnameInfo,getStudentProjectInfo,getStuExreportAll,updatescore,htmltowordurl,updateopretion} from '../../api/api';
 
 	export default {
 		data() {
@@ -207,7 +202,7 @@
 					birth: '',
 					addr: ''
 				},
-				options: [],//实验信息
+				options: [],//课程信息
 			    classoption:[
 			    ],//班级信息
 			    stuExprement:[],//实验目的
@@ -216,6 +211,7 @@
 			    eldialogscore:false,//加载
 			    htmlTitle: '',
 			    ExprementName:'',//当前实验的名称
+			    downloadFlag:false,//下载显示
 			}
 		},
 		methods: {
@@ -231,15 +227,17 @@
 			getUsers() {
 				this.listLoading = true;
 				//NProgress.start();
-				getStudentAllInfo(this.filters).then((res) => {
+				getStudentProjectInfo(this.filters).then((res) => {
 					if(res.data.code == 200){
 						this.users = res.data.data;
+						this.downloadFlag = true;
 					}else{
+						this.downloadFlag = false;
+						this.users = [];
 						this.$message({
 							message: res.data.msg,
 							type: 'warning'
 						});
-						this.users = [];
 					}
 					this.listLoading = false;
 				});
@@ -390,9 +388,9 @@
 					this.$message.error("网络故障");
 				})
 			},
-			//getExperimentnameInfo获取实验信息
-			getExperimentname(){
-				getExperimentnameInfo().then(res => {
+			//getProjectInfo获取课程信息
+			getProjectInfo(){
+				getProjectnameInfo().then(res => {
 					// console.log(res.data.data);
 					this.options = res.data.data;
 				}).catch( ret => {
@@ -474,13 +472,34 @@
 				}).catch(ret => {
 					this.$message.error("网络故障");
 				})
+			},
+			formatJson(filterVal, jsonData) {
+				return jsonData.map(v => filterVal.map(j => v[j]))
+			},
+			//下载学生信息
+			UploadCourse(){
+				console.log(this.users);
+				const { export_json_to_excel } = require('../../vendor/Export2Excel');
+				const tHeader = ['学生学号','学生姓名','学生预习成绩','学生操作成绩','学生报告成绩','学生总分'];
+				const filterVal = ['num','name','stuChoice','stuOperation','stuReport','stuAllScore'];
+				const list = this.users;
+				const data = this.formatJson(filterVal,list);
+				var classname = this.filters.classname;
+				var course = '';
+				for (var i = 0; i < this.options.length; i++) {
+					if(this.options[i].id == this.filters.exid){
+						course = this.options[i].coname;
+					}
+				}
+				var title = course+"—成绩总计("+classname+")";
+				export_json_to_excel(tHeader, data, title);
 			}
 
 		},
 		mounted() {
 			// this.getUsers();
 			this.getClass();
-			this.getExperimentname();
+			this.getProjectInfo();
 		}
 	}
 

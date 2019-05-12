@@ -1,9 +1,9 @@
 import axios from 'axios';
 const Qs = require('qs');
 
-let base = 'api';
-// let base ='http://111.230.237.84/exserver/index.php?';
-export let baseImge = "http://111.230.237.84/exserver/";//图片读取地址
+let base = 'api';//本地
+// let base ='http://47.101.167.187/exserver/index.php?';//线上
+export let baseImge = "http://47.101.167.187/exserver/";//图片读取地址
 export let imgUploadUrl = `${base}/Addcourse/imgupload`;//图片上传路劲
 
 //教师登录接口
@@ -409,6 +409,19 @@ export const getExperimentnameInfo = params => {
       	}
     ); 
 };
+//获取目前课程数据
+export const getProjectnameInfo = params => { 
+	return axios.post(
+		`${base}/expSelect/projectindex`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+
 //获取学生报告
 export const getStuExreportAll = params => { 
     return axios.post(
@@ -426,6 +439,19 @@ export const getStuExreportAll = params => {
 export const getStudentAllInfo = params => { 
 	return axios.post(
 		`${base}/Allinfo/index`,
+		Qs.stringify(params),
+		{
+	        headers: {
+	          'Content-Type': 'application/x-www-form-urlencoded'
+	        }
+      	}
+    ); 
+};
+
+//获取目前课程以及班级的签到情况
+export const getStudentProjectInfo = params => { 
+	return axios.post(
+		`${base}/Allinfo/projectIndex`,
 		Qs.stringify(params),
 		{
 	        headers: {
