@@ -4,7 +4,6 @@ import Home from './views/Home.vue'
 import Main from './views/Main.vue'
 import Table from './views/nav1/Table.vue'
 import Form from './views/nav1/Form.vue'
-import course from './views/nav1/course.vue'
 import user from './views/nav1/user.vue'
 import Page4 from './views/nav2/Page4.vue'
 import Page5 from './views/nav2/Page5.vue'
@@ -36,8 +35,7 @@ let routes = [
         children: [
             { path: '/main', component: Main, name: '主页', hidden: true },
             { path: '/table', component: Table, name: '学生信息管理' },
-            { path: '/form', component: Form, name: '实验成绩管理' },
-            { path: '/course', component: course, name: '课程成绩管理' },
+            { path: '/form', component: Form, name: '学生考勤管理' },
             // { path: '/user', component: user, name: '列表' },
         ]
     },
@@ -48,8 +46,8 @@ let routes = [
         iconCls: 'fa fa fa-server',
         children: [
             // { path: '/course', component: courseMange, name: '实验体系' },
-            { path: '/expManage', component: expManage, name: '课程管理' },
-            { path: '/exprement', component: exprement, name: '实验项目管理' },
+            { path: '/expManage', component: expManage, name: '体系管理' },
+            { path: '/exprement', component: exprement, name: '实验管理' },
         ]
     },
     // {

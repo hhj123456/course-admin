@@ -1,20 +1,5 @@
 <template>
 	<div>
-		<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
-			<el-form :inline="true" :model="filters">
-				<el-select v-model="filters.exid" filterable placeholder="请选择实验" >
-				    <el-option
-				      v-for="item in options"
-				      :key="item.id"
-				      :label="item.ename"
-				      :value="item.id">
-				    </el-option>
-				</el-select>
-				<el-form-item>
-					<el-button type="primary" v-on:click="getExprements">查询</el-button>
-				</el-form-item>
-			</el-form>
-		</el-col>
 		<div v-show="tableVisable">
 			<el-table
 			  v-loading="tableloading"
@@ -26,24 +11,24 @@
 		        show-overflow-tooltip
 		        label="课程名称">
 		      </el-table-column>
-		    <!--   <el-table-column
+		      <el-table-column
 		        prop="caname"
 		        align="center"
 		        show-overflow-tooltip
 		        label="章节名称">
-		      </el-table-column> -->
+		      </el-table-column>
 		      <el-table-column
 		        prop="ename"
 		        align="center"
 		        show-overflow-tooltip
 		        label="实验名称">
 		      </el-table-column>
-		     <!--  <el-table-column
+		      <el-table-column
 		        prop="createtime"
 		        label="创建时间"
 		        show-overflow-tooltip
 		        align="center">
-		      </el-table-column> -->
+		      </el-table-column>
 		      <el-table-column
 		        prop="flag"
 		        align="center"
@@ -61,7 +46,7 @@
 			      <template slot-scope="scope">
 			        <el-button @click="handleClick(scope.row)" size="small">编辑</el-button>
 			        <el-button :type="scope.row.isclass == 0 ? 'primary' : 'success'" size="small" @click="start(scope.row)">
-			        	{{scope.row.isclass == 0 ? '开课' : '开课'}}
+			        	{{scope.row.isclass == 0 ? '开课' : '实验中'}}
 			        </el-button>
 			        <el-button type="danger" size="small" @click="deleteExperiment(scope.row)">删除</el-button>
 			      </template>
@@ -73,7 +58,7 @@
 				</el-pagination>
 			</el-col>
 		</div>
-		<div v-show="editVisable" class="detial" v-loading="paneloading" style="padding-top: 80px">
+		<div v-show="editVisable" class="detial" v-loading="paneloading">
 			<el-tabs type="border-card" v-model="activeName" @tab-click="handleTabClick">
 				<el-button type="primary" class="el-icon-back" @click="goback">返回</el-button>
 			  <el-tab-pane name="first">
@@ -83,6 +68,9 @@
 			    		<el-form-item label="课程名称">
 						    <el-input v-model="exprement.projectname" disabled></el-input>
 						</el-form-item>
+						<el-form-item label="章节名称">
+						    <el-input v-model="exprement.chaptername" disabled></el-input>
+						</el-form-item>
 						<el-form-item label="实验名称">
 						    <el-input v-model="exprement.name"></el-input>
 						</el-form-item>
@@ -91,9 +79,6 @@
 						</el-form-item>
 						<el-form-item label="实验时长">
 						    <el-input v-model="exprement.time"></el-input>
-						</el-form-item>
-						<el-form-item label="实验班级">
-						    <el-input v-model="exprement.class" disabled  type="textarea"  :rows="3"></el-input>
 						</el-form-item>
 						<el-form-item>
 						    <el-button type="primary" @click="saveBasic" style="float: right;">保存</el-button>
@@ -472,25 +457,6 @@
 					  </el-table>
 			  	</div>
 			  </el-tab-pane>
-			 <!--  <el-tab-pane name="sixth">
-			  	<span slot="label"><i class="el-icon-setting"></i> 分数比例管理</span>
-			  	<div>
-			  		<el-form :model="ratio" status-icon label-width="100px" class="demo-ruleForm" style="width: 383px;margin-left:100px">
-			  			<el-form-item label="实验预习" prop="preparation">
-			  				<el-input-number v-model="ratio.preparation" :min="1"></el-input-number>
-			  			</el-form-item>
-			  			<el-form-item label="实验操作" prop="operation">
-			  				<el-input-number v-model="ratio.operation" :min="1"></el-input-number>
-			  			</el-form-item>
-			  			<el-form-item label="实验报告" prop="report">
-			  				<el-input-number v-model="ratio.report" :min="1"></el-input-number>
-			  			</el-form-item>
-			  			<el-form-item style="float: right;margin-right: 100px">
-						    <el-button type="primary" @click = "ratioUpdate">提交</el-button>
-						</el-form-item>
-			  		</el-form>	
-			  	</div>
-			  </el-tab-pane> -->
 			</el-tabs>
 		</div>
 		<el-dialog title="实验测试主观题" :visible.sync="dialogTestFormVisible">
@@ -618,29 +584,19 @@
 		</el-dialog>
 		<!-- 开始实验 -->
 		<el-dialog title="开始实验" :visible.sync="dialogStartVisible">
-		  <el-form :model="startForm" style="width: 75%;margin: 0 auto;" label-width="100px" label-position="left">
-		    <el-form-item label="单选题个数">
+		  <el-form :model="startForm" style="width: 75%;margin: 0 auto;">
+		    <el-form-item label="单选题个数" label-width="200">
 		      <el-input-number v-model="startForm.single" :min="0" :step="1" label="描述文字"></el-input-number>
 		    </el-form-item>
-		    <el-form-item label="单选题分数">
+		    <el-form-item label="单选题分数" label-width="200">
 		     <el-input-number v-model="startForm.singleCount" :min="2" :step="1" label="描述文字"></el-input-number>
 		    </el-form-item>
-		    <el-form-item label="多选题个数">
+		    <el-form-item label="多选题个数" label-width="200">
 		      <el-input-number v-model="startForm.multi" :min="0" :step="1" label="描述文字"></el-input-number>
 		    </el-form-item>
-		    <el-form-item label="多选题分数">
+		     <el-form-item label="多选题分数" label-width="200">
 		     	<el-input-number v-model="startForm.multiCount" :min="2" :step="1" label="描述文字"></el-input-number>
 		    </el-form-item>
-		    <el-form-item label="开课班级">
-			    <el-select v-model="startForm.classname" filterable placeholder="请选择班级" style="width: 180px">
-				    <el-option
-				      v-for="item in classoption"
-				      :key="item.value"
-				      :label="item.label"
-				      :value="item.value">
-				    </el-option>
-				</el-select>
-			</el-form-item>
 		  </el-form>
 		  <div style="margin-left: 12%">
 			  <p>总分：{{totalscore}}</p>
@@ -654,17 +610,12 @@
 	</div>	
 </template>
 <script>
-	import {getExperiment,UpdateExperiment,AddExperimentConclusion,AddExperimentContent,getExperimentContent,AddExperimentTitle,deleteExperimentContent,getExperimentConclusion,deleteExperimentConclusion,updateExperimentConclusion,AddExpConclusion,AddExamSelect,getAllExamSelect,updateExamSelect,deleteExamSelect,removeExperiment,startExamSelect,getExperimentnameInfo,getClassInfo,rationSelect,updateratio} from '../../api/api';
+	import {getExperiment,UpdateExperiment,AddExperimentConclusion,AddExperimentContent,getExperimentContent,AddExperimentTitle,deleteExperimentContent,getExperimentConclusion,deleteExperimentConclusion,updateExperimentConclusion,AddExpConclusion,AddExamSelect,getAllExamSelect,updateExamSelect,deleteExamSelect,removeExperiment,startExamSelect} from '../../api/api';
 	export default{
 		name:"exprement",
 		data(){
 			return {
-				filters:{
-					exid:'',//实验名称
-				},
 				activeName:'first',
-				options: [],//实验信息
-				classoption:[],//班级信息
 				total:0,//总页数
 				page:1,//当前页数
 				pageSize:10,//分页数
@@ -715,6 +666,7 @@
 					retitle:'实验结果与总结',
 					children:[
 						{retitle:"综合测试"},
+						{retitle:"实验总结"},
 						{retitle:"测试题管理"},
 					]
 				}],
@@ -784,13 +736,7 @@
 					singleCount:30,
 					multi:2,
 					multiCount:35,
-					classname:'',//班级名称
 				},//实验开始
-				ratio:{
-					preparation:30,//实验预习比例
-					operation:40,//实验操作比例
-					report:30,//实验报告比例
-				}
 
 			}
 		},
@@ -799,8 +745,7 @@
 			getExprements(){
 				let param={
 					page:this.page,
-					pageSize:this.pageSize,
-					exid:this.filters.exid
+					pageSize:this.pageSize
 				}
 				this.tableloading = true;
 				getExperiment(param).then(res =>{
@@ -848,12 +793,10 @@
 				this.exprement.time = row.etime;
 				this.exprement.description = row.einfo;
 				this.exprement.id = row.id;
-				this.exprement.class = row.class;
 				this.testData = [];
 				this.summary.flag = row.isconclusion;
 				this.activeName = 'first';
 				this.getExprementsConten();
-				this.getExperimentratio();
 			},
 			//筛选
 			filterType(value,row){
@@ -1346,10 +1289,6 @@
 		    },
 		    //保存开始实验
 		    startSave(){
-		    	if(this.startForm.classname == ""){
-		    		this.$message.error('请选择开课班级');
-		    		return false;
-		    	}
 				this.startSaveLoading = true;
 		    	startExamSelect(this.startForm).then(res => {
 		    		this.startSaveLoading = false;
@@ -1364,64 +1303,8 @@
 		    			this.$message.error(res.data.msg);
 		    		}
 		    	});
-		    },
-		    	//getExperimentnameInfo获取实验信息
-			getExperimentname(){
-				getExperimentnameInfo().then(res => {
-					// console.log(res.data.data);
-					this.options = res.data.data
-				}).catch( ret => {
-					this.$message.error("网络故障");
-				})
-			},
-			//获取班级信息
-			getClass(){
-				getClassInfo().then(res => {
-					let classInfo = Object.assign([],res.data.data);
-					for (var i = 0; i < classInfo.length; i++) {
-						this.classoption.push({
-							value : classInfo[i].class,
-							label:classInfo[i].class
-						})
-					}
-				}).catch(ret => {
-					this.$message.error("网络故障");
-				})
-			},
-			//获取实验比例
-			getExperimentratio(){
-				let param ={
-		    		id:this.exprement.id
-		    	}
-				rationSelect(param).then(res => {
-					this.ratio.preparation = res.data.data.preparation;
-					this.ratio.operation = res.data.data.operation;
-					this.ratio.report = res.data.data.report;
-				}).catch(ret => {
-					this.$message.error("网络故障");
-				});
-			},
-			//实验比例更新
-			ratioUpdate(){
-				let num = Number(this.ratio.preparation) + Number(this.ratio.operation) + Number(this.ratio.report);
-				if(num != 100){
-					this.$message.error("请注意比例和必须为100");
-					return;
-				}
-				this.ratio.id = this.exprement.id;
-				updateratio(this.ratio).then(res => {
-					if(res.data.code == 200){
-						this.$message({
-				          message: res.data.msg,
-				          type: 'success'
-				        });
-					}else{
-						this.$message.error(res.data.msg);
-					}
-				}).catch(ret => {
-					this.$message.error("网络故障");
-				})
-			}
+		    }
+
 		},
 		computed:{
 			totalscore:function(){
@@ -1433,8 +1316,6 @@
 		},
 		mounted(){
 	    	this.getExprements();
-	    	this.getExperimentname();
-	    	this.getClass();
 	    },
 	}
 </script>

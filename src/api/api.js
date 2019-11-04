@@ -1,9 +1,9 @@
 import axios from 'axios';
 const Qs = require('qs');
 
-let base = 'api';//本地
-// let base ='http://47.101.167.187/exserver/index.php?';//线上
-export let baseImge = "http://47.101.167.187/exserver/";//图片读取地址
+let base = 'api';
+// let base ='http://111.230.237.84/exserver/index.php?';
+export let baseImge = "http://111.230.237.84/exserver/";//图片读取地址
 export let imgUploadUrl = `${base}/Addcourse/imgupload`;//图片上传路劲
 
 //教师登录接口
@@ -409,19 +409,6 @@ export const getExperimentnameInfo = params => {
       	}
     ); 
 };
-//获取目前课程数据
-export const getProjectnameInfo = params => { 
-	return axios.post(
-		`${base}/expSelect/projectindex`,
-		Qs.stringify(params),
-		{
-	        headers: {
-	          'Content-Type': 'application/x-www-form-urlencoded'
-	        }
-      	}
-    ); 
-};
-
 //获取学生报告
 export const getStuExreportAll = params => { 
     return axios.post(
@@ -448,19 +435,6 @@ export const getStudentAllInfo = params => {
     ); 
 };
 
-//获取目前课程以及班级的签到情况
-export const getStudentProjectInfo = params => { 
-	return axios.post(
-		`${base}/Allinfo/projectIndex`,
-		Qs.stringify(params),
-		{
-	        headers: {
-	          'Content-Type': 'application/x-www-form-urlencoded'
-	        }
-      	}
-    ); 
-};
-
 //修改分数
 export const updatescore = params => { 
 	return axios.post(
@@ -474,55 +448,6 @@ export const updatescore = params => {
     ); 
 };
 
-//导出文档地址
-export const htmltowordurl = params => { 
-    return axios.post(
-        `${base}/HtmlToWord/index`,
-        params,
-        {
-        	responseType: 'blob'
-        }
-    ); 
-};
-
-//获取实验比例
-export const rationSelect = params => { 
-	return axios.post(
-		`${base}/Addexperiment/rationSelect`,
-		Qs.stringify(params),
-		{
-	        headers: {
-	          'Content-Type': 'application/x-www-form-urlencoded'
-	        }
-      	}
-    ); 
-};
-
-//更新实验比例
-export const updateratio = params => { 
-	return axios.post(
-		`${base}/Addexperiment/updateratio`,
-		Qs.stringify(params),
-		{
-	        headers: {
-	          'Content-Type': 'application/x-www-form-urlencoded'
-	        }
-      	}
-    ); 
-};
-
-//更新操作成绩
-export const updateopretion = params => { 
-	return axios.post(
-		`${base}/Expinfo/updateoperationscore`,
-		Qs.stringify(params),
-		{
-	        headers: {
-	          'Content-Type': 'application/x-www-form-urlencoded'
-	        }
-      	}
-    ); 
-};
 // //获取课程名
 // export const getCourseName = params => {return axios.get(`${base}/course/project`, { params: params })};
 // //获取章节名
